@@ -1,90 +1,129 @@
 # react-native-subject-cutout
 
-Tách người, thú cưng hoặc vật thể nổi bật khỏi ảnh cục bộ và trả về PNG trong suốt. Module xử lý hoàn toàn trên thiết bị:
+[![npm version](https://img.shields.io/npm/v/react-native-subject-cutout.svg)](https://www.npmjs.com/package/react-native-subject-cutout)
+[![npm downloads](https://img.shields.io/npm/dm/react-native-subject-cutout.svg)](https://www.npmjs.com/package/react-native-subject-cutout)
+[![license](https://img.shields.io/npm/l/react-native-subject-cutout.svg)](./LICENSE)
 
-- **iOS 17+**: Apple Vision `VNGenerateForegroundInstanceMaskRequest`.
-- **Android API 24+**: Google ML Kit Subject Segmentation.
+Tách người, thú cưng hoặc vật thể nổi bật khỏi ảnh cục bộ, rồi trả về PNG nền trong suốt để dùng làm sticker, avatar hoặc hiệu ứng cutout trong React Native. Toàn bộ xử lý chạy trên thiết bị.
+
+| Platform | Native technology | Minimum version |
+| --- | --- | --- |
+| iOS | Apple Vision `VNGenerateForegroundInstanceMaskRequest` | iOS 17 |
+| Android | Google ML Kit Subject Segmentation | API 24 |
 
 ## Cài đặt
 
-Đặt thư mục này trong monorepo hoặc publish nó lên registry riêng, sau đó thêm dependency:
-
 ```sh
-npm install ./react-native-subject-cutout
-cd ios && pod install
+npm install react-native-subject-cutout
 ```
 
-Với Expo, cần dùng development build/prebuild vì đây là native module:
+React Native CLI tự động link native module. Với iOS, cài Pods sau khi thêm package:
+
+```sh
+npx pod-install
+```
+
+Với Expo, module cần native code nên dùng development build:
 
 ```sh
 npx expo prebuild
 npx expo run:ios
+# hoặc npx expo run:android
 ```
+
+`Expo Go` không thể nạp module native này.
 
 ## Sử dụng
 
-`uri` phải là đường dẫn ảnh cục bộ `file://`. `expo-image-picker` và `react-native-image-picker` đều cung cấp URI kiểu này.
+Truyền vào một URI ảnh local, ví dụ URI từ `expo-image-picker`, `react-native-image-picker`, hoặc ảnh từ camera.
 
 ```ts
-import { cutout, extractSubjects } from 'react-native-subject-cutout';
+import { cutout, extractSubjects, clearCache } from 'react-native-subject-cutout';
 
-// Dùng cho luồng sticker một chủ thể.
+// Luồng phổ biến: lấy sticker của chủ thể đầu tiên.
 const sticker = await cutout(asset.uri);
-// sticker.uri là PNG trong suốt, sticker.width và sticker.height là kích thước đã crop.
 
-// Hoặc để người dùng chọn khi ảnh có nhiều chủ thể.
+console.log(sticker);
+// {
+//   index: 0,
+//   uri: 'file:///.../rn-subject-cutout/subject-....png',
+//   width: 824,
+//   height: 1096,
+// }
+
+// Khi ảnh có nhiều chủ thể, hiển thị danh sách để người dùng chọn.
 const { subjects } = await extractSubjects(asset.uri);
+
+// Xóa các PNG tạm do module tạo.
+await clearCache();
 ```
 
-Tệp PNG nằm trong cache của ứng dụng. Hãy sao chép chúng sang storage lâu dài trước khi xóa cache hoặc gọi `clearCache()`.
+### API
 
-## Lưu ý tích hợp
+#### `cutout(uri, subjectIndex?)`
 
-- Android tải model ML Kit qua Google Play services. Lần chạy đầu có thể cần chờ model tải xong.
-- Trả về nhiều PNG nếu framework nhận diện nhiều chủ thể. `cutout(uri)` lấy chủ thể đầu tiên.
-- Chụp/resize ảnh tối thiểu 512×512 để cải thiện chất lượng tách nền trên Android.
-- Với ảnh phức tạp hoặc không có chủ thể rõ ràng, promise trả lỗi `E_NO_SUBJECT`.
+Trả về một chủ thể đã crop dưới dạng PNG trong suốt. `subjectIndex` mặc định là `0`.
 
-## Phát hành lên npm
+#### `extractSubjects(uri)`
 
-Repository đã có sẵn build, kiểm tra tarball và workflow trusted publishing.
+Trả về tất cả chủ thể mà nền tảng nhận diện được:
 
-### Phát hành bản đầu tiên
+```ts
+type Subject = {
+  index: number;
+  uri: string;
+  width: number;
+  height: number;
+};
 
-1. Tạo hoặc đăng nhập tài khoản npm, bật 2FA cho tài khoản rồi chạy:
+type SubjectExtractionResult = {
+  subjects: Subject[];
+};
+```
 
-   ```sh
-   npm login
-   npm whoami
-   npm ci
-   npm run check
-   npm publish
-   ```
+#### `clearCache()`
 
-   `publishConfig` đã khóa registry là npmjs.org và access là `public`. Package hiện dùng tên unscoped `react-native-subject-cutout`.
+Xóa PNG tạm trong thư mục cache của ứng dụng. Nếu cần giữ ảnh, hãy sao chép `subject.uri` vào storage lâu dài trước khi gọi hàm này hoặc trước khi hệ điều hành dọn cache.
 
-2. Vào npmjs.com → Packages → `react-native-subject-cutout` → Settings → **Trusted publishing**, chọn GitHub Actions và điền:
+## Lưu ý nền tảng
 
-   - Organization or user: `ngocdevv`
-   - Repository: `react-native-subject-cutout`
-   - Workflow filename: `publish.yml`
-   - Allowed action: `npm publish`
+- Chỉ hỗ trợ URI ảnh cục bộ. Với iOS, URI phải là `file://`.
+- Android tải model ML Kit bằng Google Play services; lần chạy đầu có thể chờ model tải xong.
+- ML Kit tách nền tốt hơn với ảnh rõ nét từ 512×512 trở lên.
+- Ảnh không có chủ thể nổi bật hoặc chủ thể sát nhau có thể trả lỗi `E_NO_SUBJECT` hoặc tạo một cutout chung.
+- iOS dưới 17 trả lỗi `E_UNSUPPORTED_OS`.
 
-   Workflow đã nằm tại `.github/workflows/publish.yml`, chạy trên GitHub-hosted runner và có `id-token: write`; không tạo hoặc lưu `NPM_TOKEN` trong GitHub Secrets.
+## Dùng cho hiệu ứng sticker
 
-### Các bản sau
+`subject.uri` là PNG alpha đã crop. Đặt ảnh vào `Image` hoặc React Native Skia, thêm viền trắng/bóng và animate bằng Reanimated:
 
-1. Tăng version theo semver, commit và đẩy lên GitHub:
+```tsx
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
-   ```sh
-   npm version patch
-   git push --follow-tags
-   ```
+const animatedStyle = useAnimatedStyle(() => ({
+  opacity: stickerOpacity.value,
+  transform: [{ scale: stickerScale.value }],
+}));
 
-2. Trên GitHub, tạo một **Release** từ tag vừa tạo. Workflow sẽ chạy `npm ci`, kiểm tra tarball và publish qua OIDC. npm tạo provenance tự động cho publish từ trusted publisher.
+<Animated.Image
+  source={{ uri: sticker.uri }}
+  style={[{ width: sticker.width / 3, height: sticker.height / 3 }, animatedStyle]}
+/>
+```
 
-Sau khi xác nhận workflow hoạt động, trong npm Settings → Publishing access có thể chọn **Require two-factor authentication and disallow tokens** để chỉ cho phép CI trusted publisher phát hành.
+Để tạo hiệu ứng dither reveal như video tham chiếu, dùng Skia shader/mask thay vì tạo hàng trăm React `View`.
 
-## Dùng cho hiệu ứng trong video
+## Cho maintainer: phát hành version mới
 
-Đặt PNG trả về vào một `Image`/Skia canvas, thêm viền trắng và bóng phía sau, rồi dùng Reanimated animate `opacity`, `scale`, và `translateY`. Hiệu ứng dither reveal nên được vẽ bằng Skia shader/mask thay vì tạo nhiều React `View`.
+Bản `0.1.0` đã public trên npm. Từ các bản sau, tăng version, đẩy tag và tạo GitHub Release:
+
+```sh
+npm version patch
+git push --follow-tags
+```
+
+Workflow [`publish.yml`](.github/workflows/publish.yml) dùng npm trusted publishing qua GitHub OIDC để publish và tạo provenance; không cần lưu `NPM_TOKEN`. Đảm bảo npm package Settings → Trusted publishing trỏ tới `ngocdevv/react-native-subject-cutout` với workflow filename `publish.yml`.
+
+## License
+
+[MIT](./LICENSE)
