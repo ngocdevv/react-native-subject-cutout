@@ -1,8 +1,0 @@
-node_modules/
-.expo/
-dist/
-ios/
-android/
-*.xcworkspace
-*.xcuserstate
-.DS_Store
