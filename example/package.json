@@ -1,0 +1,23 @@
+{
+  "name": "subject-cutout-demo",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild"
+  },
+  "dependencies": {
+    "expo": "~57.0.4",
+    "expo-image": "~3.0.0",
+    "expo-image-picker": "~57.0.2",
+    "react": "19.2.7",
+    "react-native": "0.86.0",
+    "react-native-subject-cutout": "file:.."
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2"
+  }
+}

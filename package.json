@@ -1,6 +1,6 @@
 {
   "name": "react-native-subject-cutout",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "On-device foreground subject extraction for React Native using Vision and ML Kit.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
