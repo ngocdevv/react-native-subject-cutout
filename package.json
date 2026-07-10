@@ -2,14 +2,18 @@
   "name": "react-native-subject-cutout",
   "version": "0.1.0",
   "description": "On-device foreground subject extraction for React Native using Vision and ML Kit.",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "react-native": "src/index.ts",
   "files": [
     "src",
+    "lib",
     "android",
     "ios",
+    "react-native-subject-cutout.podspec",
     "react-native.config.js",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "react-native",
@@ -23,7 +27,31 @@
     "react-native": ">=0.72.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@types/react": "^19.2.17",
+    "react": "^19.2.7",
+    "react-native": "^0.86.0",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "clean": "rm -rf lib",
+    "check": "npm run build && npm pack --dry-run",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ngocdevv/react-native-subject-cutout.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ngocdevv/react-native-subject-cutout/issues"
+  },
+  "homepage": "https://github.com/ngocdevv/react-native-subject-cutout#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "license": "MIT"
 }
